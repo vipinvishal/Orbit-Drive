@@ -67,11 +67,13 @@ async def _enqueue_periodic(db: AsyncSession, job_type: str) -> None:
     for account in accounts:
         already_pending = (
             await db.execute(
-                select(Job.id).where(
+                select(Job.id)
+                .where(
                     Job.job_type == job_type,
                     Job.status == "pending",
                     Job.payload["google_account_id"].astext == str(account.id),
                 )
+                .limit(1)
             )
         ).scalar_one_or_none()
         if already_pending is None:
