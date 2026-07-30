@@ -1,6 +1,12 @@
 import { getToken } from "./auth";
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+// Always relative — every backend call goes through this same origin's
+// /api/* and gets proxied server-side by the Next.js rewrite in
+// next.config.ts (to BACKEND_ORIGIN, a server-only env var). That means
+// the browser never talks to the backend's own domain directly: no CORS,
+// no second custom domain needed for the backend, and this constant never
+// has to change between local dev and any deployment.
+export const API_BASE_URL = "/api";
 
 export class ApiError extends Error {
   status: number;
@@ -19,13 +25,16 @@ type RequestOptions = {
 };
 
 function buildUrl(path: string, query?: Record<string, string | undefined>): string {
-  const url = new URL(API_BASE_URL + path);
+  let url = API_BASE_URL + path;
   if (query) {
+    const params = new URLSearchParams();
     for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined) url.searchParams.set(key, value);
+      if (value !== undefined) params.set(key, value);
     }
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
   }
-  return url.toString();
+  return url;
 }
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
