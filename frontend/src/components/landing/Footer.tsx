@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "motion/react";
 import { API_BASE_URL } from "@/lib/api";
 import { GoogleMark } from "@/components/icons";
@@ -7,6 +8,7 @@ import { GoogleMark } from "@/components/icons";
 const LINKS = [
   { href: "#how-it-works", label: "How it works" },
   { href: "#roadmap", label: "Roadmap" },
+  { href: "/privacy", label: "Privacy" },
 ];
 
 export default function LandingFooter() {
@@ -75,11 +77,17 @@ export default function LandingFooter() {
         </div>
 
         <nav className="row" style={{ gap: 24, flexWrap: "wrap" }}>
-          {LINKS.map((link) => (
-            <a key={link.href} href={link.href} className="muted" style={{ fontSize: 13.5, fontWeight: 500 }}>
-              {link.label}
-            </a>
-          ))}
+          {LINKS.map((link) =>
+            link.href.startsWith("#") ? (
+              <a key={link.href} href={link.href} className="muted" style={{ fontSize: 13.5, fontWeight: 500 }}>
+                {link.label}
+              </a>
+            ) : (
+              <Link key={link.href} href={link.href} className="muted" style={{ fontSize: 13.5, fontWeight: 500 }}>
+                {link.label}
+              </Link>
+            ),
+          )}
           <motion.button
             whileHover={{ y: -1 }}
             onClick={handleContinue}
