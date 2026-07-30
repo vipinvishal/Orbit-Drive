@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getToken } from "@/lib/auth";
 import Hero from "@/components/landing/Hero";
@@ -14,19 +14,12 @@ import ScrollFillBar from "@/components/landing/ScrollFillBar";
 
 export default function Home() {
   const router = useRouter();
-  const [checkedAuth, setCheckedAuth] = useState(false);
 
   useEffect(() => {
     if (getToken()) {
       router.replace("/dashboard");
-      return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCheckedAuth(true);
   }, [router]);
-
-  // Avoid flashing the marketing page for a logged-in visitor mid-redirect.
-  if (!checkedAuth) return null;
 
   return (
     <div style={{ position: "relative" }}>
