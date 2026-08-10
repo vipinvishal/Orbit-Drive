@@ -5,12 +5,6 @@ import { API_BASE_URL } from "@/lib/api";
 import { GoogleMark } from "@/components/icons";
 import StoragePoolVisual from "./StoragePoolVisual";
 
-const STATS = [
-  { value: "15GB", label: "free, per account — pooled, not wasted" },
-  { value: "0", label: "duplicate files, ever" },
-  { value: "256-bit", label: "encrypted tokens, always" },
-];
-
 // A percentage-based translateY mask (e.g. y: "115%") measures against the
 // element's own box — if the text wraps to 2 lines on a narrow viewport,
 // that box is taller than expected and the slide-up reveal visibly shears
@@ -153,24 +147,6 @@ export default function Hero() {
             See how it works
           </motion.a>
         </motion.div>
-
-        <div className="row" style={{ marginTop: 36, gap: 28, flexWrap: "wrap" }}>
-          {STATS.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 1.16 + i * 0.1 }}
-            >
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700, color: "var(--gold)" }}>
-                {stat.value}
-              </div>
-              <div className="muted" style={{ fontSize: 12.5, marginTop: 2, maxWidth: 140, lineHeight: 1.4 }}>
-                {stat.label}
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </motion.div>
 
       <motion.div
