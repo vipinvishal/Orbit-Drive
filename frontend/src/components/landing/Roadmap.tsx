@@ -24,7 +24,7 @@ const ROADMAP: { title: string; body: string; status: Status }[] = [
     status: "In development",
   },
   {
-    title: "Orbit for Android",
+    title: "Orbit Drive for Android",
     body: "A native app so your pooled storage is one tap away — upload from your camera roll, browse, search, all without opening a browser.",
     status: "Coming soon",
   },
@@ -46,7 +46,7 @@ export default function Roadmap() {
       <SectionHeading
         eyebrow="What's next in orbit"
         title="This is version one. The pool is about to get a lot bigger."
-        sub="Google Drive is where Orbit started, not where it stops."
+        sub="Google Drive is where Orbit Drive started, not where it stops."
       />
 
       <div style={{ marginTop: 48 }}>

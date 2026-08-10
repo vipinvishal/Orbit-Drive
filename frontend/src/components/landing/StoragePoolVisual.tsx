@@ -81,7 +81,7 @@ export default function StoragePoolVisual({ size = 380 }: { size?: number }) {
   const fillFraction = 0.6;
 
   return (
-    <div style={{ width: size, height: size, flexShrink: 0 }} aria-hidden="true">
+    <div style={{ width: "100%", maxWidth: size, aspectRatio: "1 / 1" }} aria-hidden="true">
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width="100%" height="100%">
         <defs>
           <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">

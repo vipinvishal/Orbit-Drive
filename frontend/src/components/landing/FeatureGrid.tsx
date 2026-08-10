@@ -33,13 +33,13 @@ const FEATURES: FeatureItem[] = [
   {
     icon: RouteIcon,
     title: "Smart placement engine",
-    body: "Every upload is silently routed to whichever pooled account actually has room. You never choose — Orbit always knows.",
+    body: "Every upload is silently routed to whichever pooled account actually has room. You never choose — Orbit Drive always knows.",
     featured: false,
   },
   {
     icon: CopyIcon,
     title: "Instant deduplication",
-    body: "Files are fingerprinted by content, not name. Upload the same file twice and Orbit links it instead of burning storage twice.",
+    body: "Files are fingerprinted by content, not name. Upload the same file twice and Orbit Drive links it instead of burning storage twice.",
     featured: false,
   },
   {
@@ -57,14 +57,14 @@ const FEATURES: FeatureItem[] = [
   {
     icon: TrashIcon,
     title: "Deletion that's actually real",
-    body: "Delete a file — or a whole folder tree — and it's gone from Google Drive itself, not just hidden in Orbit. One confirmation, fully recursive, no orphaned files left behind.",
+    body: "Delete a file — or a whole folder tree — and it's gone from Google Drive itself, not just hidden in Orbit Drive. One confirmation, fully recursive, no orphaned files left behind.",
     featured: true,
     illustration: DeleteIllustration,
   },
   {
     icon: ShieldIcon,
     title: "Bank-grade by default",
-    body: "OAuth with PKCE, tokens encrypted at rest, and the narrow drive.file scope — Orbit only ever touches what it created.",
+    body: "OAuth with PKCE, tokens encrypted at rest, and the narrow drive.file scope — Orbit Drive only ever touches what it created.",
     featured: false,
   },
   {

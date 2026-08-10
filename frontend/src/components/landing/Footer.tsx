@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { API_BASE_URL } from "@/lib/api";
-import { GoogleMark } from "@/components/icons";
 
 const LINKS = [
   { href: "#how-it-works", label: "How it works" },
@@ -12,10 +10,6 @@ const LINKS = [
 ];
 
 export default function LandingFooter() {
-  function handleContinue() {
-    window.location.href = `${API_BASE_URL}/auth/google/login`;
-  }
-
   return (
     <footer style={{ position: "relative", marginTop: "clamp(64px, 10vw, 120px)" }}>
       <div
@@ -72,7 +66,16 @@ export default function LandingFooter() {
             ORBIT DRIVE
           </div>
           <span className="muted" style={{ fontSize: 12.5 }}>
-            One drive. Your Google accounts, pooled. &copy; {new Date().getFullYear()}
+            One drive. Your Google accounts, pooled. &copy; {new Date().getFullYear()} &middot; Built by{" "}
+            <a
+              href="https://orbitailabs.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="muted"
+              style={{ fontSize: 12.5, textDecoration: "underline", textUnderlineOffset: 2 }}
+            >
+              Orbit AI Labs
+            </a>
           </span>
         </div>
 
@@ -88,15 +91,6 @@ export default function LandingFooter() {
               </Link>
             ),
           )}
-          <motion.button
-            whileHover={{ y: -1 }}
-            onClick={handleContinue}
-            className="secondary row"
-            style={{ gap: 8, fontSize: 13.5, padding: "8px 14px" }}
-          >
-            <GoogleMark size={14} />
-            Continue with Google
-          </motion.button>
         </nav>
       </div>
     </footer>

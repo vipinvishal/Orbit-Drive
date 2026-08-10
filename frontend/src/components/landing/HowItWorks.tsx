@@ -18,7 +18,7 @@ const STEPS = [
   {
     icon: RouteIcon,
     title: "Upload, search, forget the plumbing",
-    body: "From here it's one drive. Orbit decides which account actually holds each file — you just use it.",
+    body: "From here it's one drive. Orbit Drive decides which account actually holds each file — you just use it.",
   },
 ];
 

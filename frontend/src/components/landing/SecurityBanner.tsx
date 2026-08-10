@@ -14,12 +14,12 @@ const POINTS: Point[] = [
   {
     icon: ShieldIcon,
     title: "Zero file storage, by design",
-    body: "Orbit has no storage layer of its own. Every file you upload lives only in your own Google Drive.",
+    body: "Orbit Drive has no storage layer of its own. Every file you upload lives only in your own Google Drive.",
   },
   {
     icon: LockIcon,
     title: "The narrowest access there is",
-    body: "We request Google's drive.file scope only — Orbit can see just the files it created, nothing else in your Drive.",
+    body: "We request Google's drive.file scope only — Orbit Drive can see just the files it created, nothing else in your Drive.",
   },
   {
     icon: KeyOffIcon,
@@ -49,7 +49,7 @@ export default function SecurityBanner() {
           background: "linear-gradient(155deg, var(--void-1), var(--void-2) 65%)",
           padding: "clamp(36px, 6vw, 60px)",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))",
           gap: "clamp(32px, 5vw, 64px)",
           alignItems: "start",
         }}
@@ -92,8 +92,9 @@ export default function SecurityBanner() {
           </h2>
 
           <p className="muted" style={{ fontSize: 15.5, lineHeight: 1.7, marginTop: 18, maxWidth: 420 }}>
-            Everything you upload stays on Google&rsquo;s own servers, in your own Drive. Orbit only keeps a map of
-            where it lives — there is nothing of yours sitting on our infrastructure to lose, leak, or subpoena.
+            Everything you upload stays on Google&rsquo;s own servers, in your own Drive. Orbit Drive only keeps a
+            map of where it lives — there is nothing of yours sitting on our infrastructure to lose, leak, or
+            subpoena.
           </p>
 
           <motion.a
