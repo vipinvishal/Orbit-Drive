@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { API_BASE_URL } from "@/lib/api";
 import { GoogleMark } from "@/components/icons";
 import StoragePoolVisual from "./StoragePoolVisual";
@@ -30,6 +30,8 @@ function RevealLine({ children, delay }: { children: React.ReactNode; delay: num
 }
 
 export default function Hero() {
+  const reduceMotion = useReducedMotion();
+
   function handleContinue() {
     window.location.href = `${API_BASE_URL}/auth/google/login`;
   }
@@ -97,24 +99,43 @@ export default function Hero() {
           </RevealLine>
         </h1>
 
+        <p style={{ marginTop: 22, maxWidth: 480, fontSize: "clamp(18px, 2.7vw, 23px)", fontWeight: 700, lineHeight: 1.42 }}>
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: [8, -3, 2, -1, 0] }}
+            transition={{ duration: reduceMotion ? 0.4 : 0.55, delay: 0.34, ease: "easeOut" }}
+            style={{ color: "var(--text-dim)", display: "inline-block" }}
+          >
+            We could vanish tomorrow.{" "}
+          </motion.span>
+          <motion.span
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            style={{ color: "var(--gold)", display: "inline-block" }}
+          >
+            Your files wouldn&rsquo;t even notice.
+          </motion.span>
+        </p>
+
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.55 }}
+          transition={{ duration: 0.6, delay: 0.9 }}
           className="muted"
-          style={{ fontSize: 17, lineHeight: 1.65, marginTop: 20, maxWidth: 480 }}
+          style={{ fontSize: 17, lineHeight: 1.65, marginTop: 18, maxWidth: 480 }}
         >
-          You&rsquo;ve got free storage scattered across three Gmail accounts you forgot you made. Orbit Drive pools
-          every one of them into a single, self-organizing drive — so the space you already own finally acts like
-          it.
+          You&rsquo;ve got free storage scattered across every Gmail account you&rsquo;ve ever made. Orbit Drive
+          pools all of them — two, five, however many — into a single, self-organizing drive that finally acts
+          like the space you already own.
         </motion.p>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.68 }}
+          transition={{ duration: 0.6, delay: 1.04 }}
           className="row"
-          style={{ marginTop: 32, flexWrap: "wrap", gap: 14 }}
+          style={{ marginTop: 28, flexWrap: "wrap", gap: 14 }}
         >
           <div style={{ position: "relative", display: "inline-flex" }}>
             <motion.span
@@ -166,13 +187,13 @@ export default function Hero() {
           </motion.a>
         </motion.div>
 
-        <div className="row" style={{ marginTop: 44, gap: 28, flexWrap: "wrap" }}>
+        <div className="row" style={{ marginTop: 36, gap: 28, flexWrap: "wrap" }}>
           {STATS.map((stat, i) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 + i * 0.1 }}
+              transition={{ duration: 0.5, delay: 1.18 + i * 0.1 }}
             >
               <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700, color: "var(--gold)" }}>
                 {stat.value}

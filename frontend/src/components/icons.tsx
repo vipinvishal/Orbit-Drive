@@ -263,6 +263,26 @@ export function AlertTriangleIcon({ size = 16, className }: IconProps) {
   );
 }
 
+export function LockIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <rect x="4.5" y="10.5" width="15" height="10" rx="2" />
+      <path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5" />
+      <path d="M12 14.5v2.5" />
+    </svg>
+  );
+}
+
+export function KeyOffIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <circle cx="8" cy="15.5" r="4" />
+      <path d="M11 12.5 20 3.5m0 0h-4.5M20 3.5V8" />
+      <path d="m16.5 8-2 2" />
+    </svg>
+  );
+}
+
 export function GoogleMark({ size = 18, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" className={className}>

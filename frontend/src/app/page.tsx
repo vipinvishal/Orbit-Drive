@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getToken } from "@/lib/auth";
 import Hero from "@/components/landing/Hero";
 import FeatureGrid from "@/components/landing/FeatureGrid";
+import SecurityBanner from "@/components/landing/SecurityBanner";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Roadmap from "@/components/landing/Roadmap";
 import FinalCTA from "@/components/landing/FinalCTA";
@@ -36,6 +37,7 @@ export default function Home() {
         }}
       >
         <Hero />
+        <SecurityBanner />
         <FeatureGrid />
         <div id="how-it-works">
           <HowItWorks />
