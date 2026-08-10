@@ -6,6 +6,10 @@ design: no business logic here, just calls the FastAPI backend (Phases
 
 ## Pages
 
+- `/` — marketing landing page (hero, security/trust section, features,
+  how it works, roadmap)
+- `/privacy` — privacy policy (static content, required for Google OAuth
+  verification)
 - `/signup`, `/login` — auth, stores the JWT in `localStorage`
 - `/accounts` — connected Google accounts + quota, "Connect Google Account"
   button, pooled storage summary

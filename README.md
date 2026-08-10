@@ -2,6 +2,9 @@
 
 **Every Google Drive you own. One orbit.**
 
+Live at [orbitdrive.space](https://orbitdrive.space) — built by
+[Orbit AI Labs](https://orbitailabs.in).
+
 Orbit Drive is a storage-virtualization platform that pools multiple Google
 Drive accounts under a single login. Instead of juggling several Gmail
 accounts to get more free storage, you connect all of them once and Orbit
@@ -32,6 +35,24 @@ search, and manage everything from a single dashboard.
   rest (Fernet), JWT session auth.
 - **Built for reliability** — a background job layer retries failed uploads
   and refreshes account quota automatically.
+
+## Security
+
+Orbit Drive has no storage layer of its own — every file you upload lives
+only in your own Google Drive. There's nothing of yours sitting on our
+infrastructure to lose, leak, or subpoena.
+
+- **Narrowest scope possible** — Google's `drive.file` scope only. Orbit
+  Drive can see just the files it created; the rest of your Drive stays
+  invisible to it, always.
+- **No passwords, ever** — sign-in runs entirely through Google OAuth 2.0
+  with PKCE. Orbit Drive never sees or stores your Google password.
+- **Tokens encrypted at rest** — OAuth tokens are encrypted (Fernet), never
+  stored or transmitted in plain text.
+- **Disconnect and it's gone, instantly** — removing an account deletes its
+  tokens from the database immediately, with no lingering access.
+
+See the full [Privacy Policy](https://orbitdrive.space/privacy) for details.
 
 ## Tech stack
 
