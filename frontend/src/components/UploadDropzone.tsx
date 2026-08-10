@@ -84,20 +84,53 @@ export default function UploadDropzone({
                     key={task.id}
                     layout
                     initial={{ opacity: 0, y: -6 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      borderColor: task.status === "done" ? "var(--good)" : task.status === "error" ? "var(--critical)" : "var(--border)",
+                    }}
                     exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
                     className="card"
                     style={{ padding: "10px 14px" }}
                   >
                     <div className="row" style={{ gap: 10 }}>
                       <span
                         style={{
-                          color: task.status === "error" ? "var(--critical)" : task.status === "done" ? "var(--good)" : "var(--text-faint)",
+                          width: 26,
+                          height: 26,
+                          borderRadius: 8,
                           display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                           flexShrink: 0,
+                          color: task.status === "error" ? "var(--critical)" : task.status === "done" ? "var(--good)" : "var(--text-faint)",
+                          background:
+                            task.status === "error"
+                              ? "rgba(208,59,59,0.14)"
+                              : task.status === "done"
+                                ? "rgba(12,163,12,0.14)"
+                                : "var(--void-3)",
                         }}
                       >
-                        {task.status === "error" ? <AlertTriangleIcon size={15} /> : task.status === "done" ? <CheckIcon size={15} /> : <FileIcon size={15} />}
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.span
+                            key={task.status}
+                            initial={{ opacity: 0, scale: 0.6 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.6 }}
+                            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                            style={{ display: "flex" }}
+                          >
+                            {task.status === "error" ? (
+                              <AlertTriangleIcon size={14} />
+                            ) : task.status === "done" ? (
+                              <CheckIcon size={14} />
+                            ) : (
+                              <FileIcon size={14} />
+                            )}
+                          </motion.span>
+                        </AnimatePresence>
                       </span>
                       <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 13 }}>
                         {task.name}

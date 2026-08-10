@@ -19,6 +19,37 @@ export function FileIcon({ size = 18, className }: IconProps) {
   );
 }
 
+export function ImageFileIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" />
+      <path d="M14 2v6h6" />
+      <circle cx={10.5} cy={13} r={1.3} />
+      <path d="m8 18 3-3.2 2 2 2.5-3 2.5 3.2" />
+    </svg>
+  );
+}
+
+export function VideoFileIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" />
+      <path d="M14 2v6h6" />
+      <path d="M10.3 12.4v4.2l3.6-2.1-3.6-2.1Z" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function DocFileIcon({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" />
+      <path d="M14 2v6h6" />
+      <path d="M8 13h8M8 16.5h5.5" />
+    </svg>
+  );
+}
+
 export function DownloadIcon({ size = 16, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>

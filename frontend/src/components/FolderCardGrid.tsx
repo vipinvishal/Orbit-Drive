@@ -90,16 +90,20 @@ export default function FolderCardGrid({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
-            whileHover={{ y: -3 }}
+            whileHover={{ y: -3, borderColor: "var(--border-bright)" }}
             onMouseMove={handleSpotlight}
             onClick={() => !isRenaming && onOpen(folder)}
             className="card spotlight-card"
             style={{ cursor: isRenaming ? "default" : "pointer" }}
           >
             <div className="between">
-              <span style={{ color, display: "flex" }}>
+              <motion.span
+                whileHover={{ scale: 1.1, rotate: -4 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                style={{ color, display: "flex" }}
+              >
                 <FolderIcon size={30} />
-              </span>
+              </motion.span>
               <RowMenu actions={actions} />
             </div>
             {isRenaming ? (

@@ -93,6 +93,7 @@ export default function Sidebar({ onNavigate, onClose }: { onNavigate?: () => vo
   }
 
   const primaryEmail = accounts && accounts.length > 0 ? accounts[0].google_email : null;
+  const stillLoading = accounts === null;
   const categorizedTotal = breakdown
     ? breakdown.images_bytes + breakdown.videos_bytes + breakdown.documents_bytes + breakdown.other_bytes
     : 0;
@@ -161,11 +162,12 @@ export default function Sidebar({ onNavigate, onClose }: { onNavigate?: () => vo
         <span
           className="mono"
           style={{
-            width: 32,
-            height: 32,
+            width: 34,
+            height: 34,
             borderRadius: "50%",
             background: "var(--gold-wash)",
             color: "var(--gold)",
+            border: "1px solid var(--gold-ring)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -174,10 +176,10 @@ export default function Sidebar({ onNavigate, onClose }: { onNavigate?: () => vo
             flexShrink: 0,
           }}
         >
-          {primaryEmail ? initials(primaryEmail) : "…"}
+          {primaryEmail ? initials(primaryEmail) : stillLoading ? "…" : "?"}
         </span>
         <span style={{ fontSize: 12.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-dim)" }}>
-          {primaryEmail ?? "Loading…"}
+          {primaryEmail ?? (stillLoading ? "Loading…" : "No account connected")}
         </span>
       </div>
 
@@ -199,8 +201,25 @@ export default function Sidebar({ onNavigate, onClose }: { onNavigate?: () => vo
                 color: active ? "var(--gold)" : "var(--text-dim)",
                 background: active ? "var(--gold-wash)" : "transparent",
                 position: "relative",
+                transition: "background 0.15s ease, color 0.15s ease",
               }}
             >
+              {active && (
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    left: -10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 3,
+                    height: 16,
+                    borderRadius: 2,
+                    background: "var(--gold)",
+                    boxShadow: "0 0 8px var(--gold)",
+                  }}
+                />
+              )}
               <item.icon size={16} />
               {item.label}
             </Link>

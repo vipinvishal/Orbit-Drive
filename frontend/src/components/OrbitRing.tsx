@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { formatBytes } from "@/lib/format";
 
@@ -38,20 +39,51 @@ export default function OrbitRing({
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const fillColor = ringColor(pct, color);
+  const isDefaultGold = color === "var(--gold)";
+  const uid = useId();
+  const gradientId = `orbit-ring-gradient-${uid}`;
+  const glowId = `orbit-ring-glow-${uid}`;
 
   return (
     <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)" }}>
+      {isDefaultGold && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: "-14%",
+            borderRadius: "50%",
+            background: "radial-gradient(circle, var(--gold-wash), transparent 70%)",
+            filter: "blur(6px)",
+            pointerEvents: "none",
+          }}
+        />
+      )}
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ position: "relative", transform: "rotate(-90deg)" }}>
+        <defs>
+          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="var(--gold-bright)" />
+            <stop offset="100%" stopColor="var(--gold)" />
+          </linearGradient>
+          <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation={strokeWidth * 0.35} result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--chart-track)" strokeWidth={strokeWidth} />
         <motion.circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={fillColor}
+          stroke={isDefaultGold && pct < 0.85 ? `url(#${gradientId})` : fillColor}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
+          filter={isDefaultGold ? `url(#${glowId})` : undefined}
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset: circumference * (1 - pct) }}
           transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.1, ease: [0.16, 1, 0.3, 1], delay }}

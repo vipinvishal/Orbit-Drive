@@ -7,13 +7,14 @@ import { API_BASE_URL, apiFetch, ApiError } from "@/lib/api";
 import { getToken, useRequireAuth } from "@/lib/auth";
 import { formatBytes } from "@/lib/format";
 import StorageSummary from "@/components/StorageSummary";
+import CategoryBreakdown from "@/components/CategoryBreakdown";
 import Modal from "@/components/Modal";
 import AccountFilesPanel from "@/components/AccountFilesPanel";
 import AppShell from "@/components/AppShell";
-import { OrbitBreakIcon, PlusIcon, RefreshIcon, GoogleMark } from "@/components/icons";
+import { OrbitBreakIcon, PlusIcon, RefreshIcon, GoogleMark, BarChartIcon } from "@/components/icons";
 import { useToast } from "@/components/Toast";
 import { handleSpotlight } from "@/lib/spotlight";
-import type { GoogleAccount, OrbitFile, StorageSummary as StorageSummaryType } from "@/lib/types";
+import type { GoogleAccount, OrbitFile, StorageBreakdown, StorageSummary as StorageSummaryType } from "@/lib/types";
 
 export default function AccountsPage() {
   return (
@@ -42,6 +43,7 @@ function AccountsPageContent() {
 
   const [accounts, setAccounts] = useState<GoogleAccount[] | null>(null);
   const [summary, setSummary] = useState<StorageSummaryType | null>(null);
+  const [breakdown, setBreakdown] = useState<StorageBreakdown | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [sortByAvailable, setSortByAvailable] = useState(false);
@@ -54,12 +56,14 @@ function AccountsPageContent() {
 
   const load = useCallback(async () => {
     try {
-      const [accountsResult, summaryResult] = await Promise.all([
+      const [accountsResult, summaryResult, breakdownResult] = await Promise.all([
         apiFetch<GoogleAccount[]>("/accounts"),
         apiFetch<StorageSummaryType>("/storage/summary"),
+        apiFetch<StorageBreakdown>("/storage/breakdown"),
       ]);
       setAccounts(accountsResult);
       setSummary(summaryResult);
+      setBreakdown(breakdownResult);
     } catch (err) {
       toast.show(err instanceof ApiError ? err.message : "Failed to load accounts", "error");
     }
@@ -156,16 +160,38 @@ function AccountsPageContent() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          style={{ display: "flex", flexDirection: "column", gap: 2 }}
+          className="row"
+          style={{ gap: 14 }}
         >
-          <h1 style={{ fontSize: 26 }}>Storage</h1>
-          <p className="muted" style={{ fontSize: 13.5 }}>
-            Every Google account you connect pools its storage into your one drive.
-          </p>
+          <span
+            style={{
+              display: "inline-flex",
+              width: 42,
+              height: 42,
+              borderRadius: 12,
+              background: "var(--gold-wash)",
+              color: "var(--gold)",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <BarChartIcon size={20} />
+          </span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <h1 style={{ fontSize: 28 }}>Storage</h1>
+            <p className="muted" style={{ fontSize: 13.5 }}>
+              Every Google account you connect pools its storage into your one drive.
+            </p>
+          </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.06 }}>
           <StorageSummary summary={summary} accounts={accounts} />
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.08 }}>
+          <CategoryBreakdown breakdown={breakdown} />
         </motion.div>
 
         <motion.div

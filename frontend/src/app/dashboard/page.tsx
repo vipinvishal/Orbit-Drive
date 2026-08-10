@@ -14,7 +14,7 @@ import FolderPickerModal from "@/components/FolderPickerModal";
 import FilePreviewModal from "@/components/FilePreviewModal";
 import Modal from "@/components/Modal";
 import AppShell from "@/components/AppShell";
-import { OrbitBreakIcon, HomeIcon, ChevronRightIcon } from "@/components/icons";
+import { OrbitBreakIcon, HomeIcon, ChevronRightIcon, FolderIcon } from "@/components/icons";
 import { useToast } from "@/components/Toast";
 import type { FileListResponse, Folder, GoogleAccount, OrbitFile, StorageSummary as StorageSummaryType, UploadTask } from "@/lib/types";
 
@@ -343,12 +343,30 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          style={{ display: "flex", flexDirection: "column", gap: 2 }}
+          className="row"
+          style={{ gap: 14 }}
         >
-          <h1 style={{ fontSize: 26 }}>All Files</h1>
-          <p className="muted" style={{ fontSize: 13.5 }}>
-            Every connected Google account, browsed as one.
-          </p>
+          <span
+            style={{
+              display: "inline-flex",
+              width: 42,
+              height: 42,
+              borderRadius: 12,
+              background: "var(--gold-wash)",
+              color: "var(--gold)",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <FolderIcon size={20} />
+          </span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <h1 style={{ fontSize: 28 }}>All Files</h1>
+            <p className="muted" style={{ fontSize: 13.5 }}>
+              Every connected Google account, browsed as one.
+            </p>
+          </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.06 }}>
@@ -363,9 +381,15 @@ export default function DashboardPage() {
 
         {searchResults ? (
           <div className="stack">
-            <div className="muted">
+            <motion.div
+              key={searchResults.length}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
+              className="muted"
+            >
               {searchResults.length} result{searchResults.length === 1 ? "" : "s"}
-            </div>
+            </motion.div>
             <AnimatePresence>
               <FileBrowser
                 files={currentFiles}
@@ -374,6 +398,7 @@ export default function DashboardPage() {
                 onRename={handleRenameFile}
                 onMove={(file) => setMoveTarget({ type: "file", item: file })}
                 onPreview={setPreviewFile}
+                variant="search"
               />
             </AnimatePresence>
           </div>

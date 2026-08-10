@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { formatBytes, formatDateTime, hasFileExtension } from "@/lib/format";
-import { FileIcon, DownloadIcon, TrashIcon, UploadCloudIcon, EditIcon, MoveIcon, EyeOpenIcon, SortAscIcon, SortDescIcon } from "@/components/icons";
+import { FileIcon, ImageFileIcon, VideoFileIcon, DocFileIcon, DownloadIcon, TrashIcon, SearchIcon, EditIcon, MoveIcon, EyeOpenIcon, SortAscIcon, SortDescIcon } from "@/components/icons";
 import RowMenu, { type MenuAction } from "@/components/RowMenu";
 import { isPreviewable } from "@/components/FilePreviewModal";
 import { useToast } from "@/components/Toast";
@@ -19,6 +19,20 @@ function categoryColor(mimeType: string | null): string {
     return "var(--chart-3)";
   }
   return "var(--chart-4)";
+}
+
+function CategoryIcon({ mimeType, size }: { mimeType: string | null; size: number }) {
+  if (mimeType?.startsWith("image/")) return <ImageFileIcon size={size} />;
+  if (mimeType?.startsWith("video/")) return <VideoFileIcon size={size} />;
+  if (
+    mimeType?.startsWith("application/pdf") ||
+    mimeType?.startsWith("text/") ||
+    mimeType?.startsWith("application/vnd") ||
+    mimeType?.startsWith("application/msword")
+  ) {
+    return <DocFileIcon size={size} />;
+  }
+  return <FileIcon size={size} />;
 }
 
 function SortHeader({
@@ -51,12 +65,13 @@ function SortHeader({
 
 const thStyle: React.CSSProperties = {
   textAlign: "left",
-  padding: "10px 16px",
+  padding: "12px 16px",
   fontSize: 11.5,
   fontWeight: 600,
-  letterSpacing: "0.04em",
+  letterSpacing: "0.06em",
   textTransform: "uppercase",
   color: "var(--text-faint)",
+  background: "var(--void-2)",
 };
 
 export default function FileBrowser({
@@ -66,6 +81,7 @@ export default function FileBrowser({
   onRename,
   onMove,
   onPreview,
+  variant = "browse",
 }: {
   files: OrbitFile[];
   onDownload: (file: OrbitFile) => void;
@@ -73,6 +89,7 @@ export default function FileBrowser({
   onRename: (file: OrbitFile, newName: string) => Promise<void>;
   onMove: (file: OrbitFile) => void;
   onPreview: (file: OrbitFile) => void;
+  variant?: "browse" | "search";
 }) {
   const toast = useToast();
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({ key: "filename", dir: "asc" });
@@ -128,18 +145,37 @@ export default function FileBrowser({
   }
 
   if (files.length === 0) {
+    // "browse" already has the real upload dropzone directly above it —
+    // a second box here would visually duplicate that call-to-action
+    // without actually being a drop target itself, which reads as a
+    // second (broken) upload area. Nothing to say here that the
+    // dropzone hasn't already said.
+    if (variant === "browse") return null;
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         className="card"
-        style={{ textAlign: "center", padding: "48px 24px", color: "var(--text-dim)" }}
+        style={{ textAlign: "center", padding: "52px 24px", color: "var(--text-dim)" }}
       >
-        <div style={{ display: "flex", justifyContent: "center", opacity: 0.55, marginBottom: 12 }}>
-          <UploadCloudIcon size={28} />
-        </div>
-        Nothing here yet — drop a file above to get started.
+        <span
+          style={{
+            display: "inline-flex",
+            width: 48,
+            height: 48,
+            borderRadius: 13,
+            background: "var(--void-3)",
+            color: "var(--text-faint)",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 14,
+          }}
+        >
+          <SearchIcon size={22} />
+        </span>
+        <div>No files match your search.</div>
       </motion.div>
     );
   }
@@ -171,21 +207,34 @@ export default function FileBrowser({
                 <motion.tr
                   key={file.id}
                   layout
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2, delay: i * 0.02 }}
+                  transition={{ duration: 0.28, delay: Math.min(i * 0.035, 0.4), ease: [0.16, 1, 0.3, 1] }}
                   whileHover={{ backgroundColor: "var(--void-2)" }}
                   style={{ borderBottom: i === sortedFiles.length - 1 ? "none" : "1px solid var(--border)" }}
                 >
-                  <td style={{ padding: "10px 16px", maxWidth: 320 }}>
-                    <div className="row" style={{ gap: 10, minWidth: 0 }}>
-                      <span
-                        style={{ color: categoryColor(file.mime_type), flexShrink: 0, display: "flex", cursor: isPreviewable(file.mime_type) ? "pointer" : "default" }}
+                  <td style={{ padding: "13px 16px", maxWidth: 320 }}>
+                    <div className="row" style={{ gap: 12, minWidth: 0 }}>
+                      <motion.span
+                        whileHover={isPreviewable(file.mime_type) ? { scale: 1.1 } : undefined}
+                        transition={{ duration: 0.15 }}
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: 9,
+                          background: `color-mix(in srgb, ${categoryColor(file.mime_type)} 16%, transparent)`,
+                          color: categoryColor(file.mime_type),
+                          flexShrink: 0,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: isPreviewable(file.mime_type) ? "pointer" : "default",
+                        }}
                         onClick={() => isPreviewable(file.mime_type) && onPreview(file)}
                       >
-                        <FileIcon size={16} />
-                      </span>
+                        <CategoryIcon mimeType={file.mime_type} size={15} />
+                      </motion.span>
                       {isRenaming ? (
                         <span className="row" style={{ gap: 6, minWidth: 0, flex: 1 }}>
                           <input
@@ -214,13 +263,13 @@ export default function FileBrowser({
                       )}
                     </div>
                   </td>
-                  <td className="muted mono table-col-modified" style={{ padding: "10px 16px", fontSize: 12.5, whiteSpace: "nowrap" }}>
+                  <td className="muted mono table-col-modified" style={{ padding: "13px 16px", fontSize: 12.5, whiteSpace: "nowrap" }}>
                     {formatDateTime(file.updated_at)}
                   </td>
-                  <td className="muted mono" style={{ padding: "10px 16px", fontSize: 12.5, whiteSpace: "nowrap" }}>
+                  <td className="muted mono" style={{ padding: "13px 16px", fontSize: 12.5, whiteSpace: "nowrap" }}>
                     {formatBytes(file.size_bytes)}
                   </td>
-                  <td style={{ padding: "6px 12px", textAlign: "right" }}>
+                  <td style={{ padding: "9px 12px", textAlign: "right" }}>
                     <div className="row" style={{ justifyContent: "flex-end", gap: 2 }}>
                       <IconButton onClick={() => onDownload(file)} label="Download">
                         <DownloadIcon size={15} />
