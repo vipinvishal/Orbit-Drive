@@ -73,12 +73,13 @@ export default function FinalCTA() {
 
         <div style={{ position: "relative" }}>
           <h2 style={{ fontSize: "clamp(28px, 4.4vw, 42px)", lineHeight: 1.2 }}>
-            Your storage is already out there.
+            You don&rsquo;t need more storage.
             <br />
-            Bring it into orbit.
+            You need it in one place.
           </h2>
           <p className="muted" style={{ marginTop: 14, fontSize: 15.5, maxWidth: 460, margin: "14px auto 0" }}>
-            One Google sign-in and you&rsquo;re in — free, and ready to add every other account right after.
+            One Google sign-in pools everything you&rsquo;ve already got — free, and every other account ready
+            to add right after.
           </p>
           <div style={{ position: "relative", display: "inline-flex", marginTop: 28 }}>
             <motion.span

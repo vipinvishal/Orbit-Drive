@@ -55,85 +55,52 @@ export default function Hero() {
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         style={{ flex: "1 1 420px", minWidth: 300 }}
       >
-        <motion.span
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="row mono"
-          style={{
-            display: "inline-flex",
-            color: "var(--gold)",
-            fontSize: 12,
-            fontWeight: 600,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            border: "1px solid var(--gold-ring)",
-            background: "var(--gold-wash)",
-            borderRadius: 20,
-            padding: "5px 12px 5px 10px",
-            gap: 7,
-          }}
-        >
-          <motion.span
-            animate={{ opacity: [1, 0.35, 1] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-            style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gold)", flexShrink: 0 }}
-          />
-          Storage virtualization, live
-        </motion.span>
-
-        <h1 style={{ fontSize: "clamp(30px, 7vw, 64px)", lineHeight: 1.1, marginTop: 22 }}>
-          <RevealLine delay={0.15}>Every Google Drive</RevealLine>
-          <RevealLine delay={0.26}>
-            you own.{" "}
-            <span
-              style={{
-                backgroundImage: "linear-gradient(120deg, var(--gold-bright), var(--gold))",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              One orbit.
-            </span>
+        <h1 style={{ fontSize: "clamp(30px, 7vw, 64px)", lineHeight: 1.15 }}>
+          <RevealLine delay={0.12}>
+            Turns out, you&rsquo;re <span style={{ color: "var(--gold)" }}>not out of storage.</span>
           </RevealLine>
         </h1>
 
-        <p style={{ marginTop: 22, maxWidth: 480, fontSize: "clamp(18px, 2.7vw, 23px)", fontWeight: 700, lineHeight: 1.42 }}>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.32 }}
+          style={{
+            marginTop: 20,
+            maxWidth: 480,
+            fontSize: "clamp(17px, 2.3vw, 20px)",
+            fontWeight: 700,
+            lineHeight: 1.5,
+            color: "var(--text)",
+          }}
+        >
+          You&rsquo;ve got 15GB free on every Gmail account you&rsquo;ve ever made — two, five, however many.
+          Orbit Drive pools all of them into one.
+        </motion.p>
+
+        <p style={{ marginTop: 20, maxWidth: 480, fontSize: "clamp(15.5px, 2vw, 17px)", lineHeight: 1.55 }}>
           <motion.span
             initial={{ opacity: 0 }}
             animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: [8, -3, 2, -1, 0] }}
-            transition={{ duration: reduceMotion ? 0.4 : 0.55, delay: 0.34, ease: "easeOut" }}
+            transition={{ duration: reduceMotion ? 0.4 : 0.55, delay: 0.52, ease: "easeOut" }}
             style={{ color: "var(--text-dim)", display: "inline-block" }}
           >
-            We could vanish tomorrow.{" "}
-          </motion.span>
+            We could vanish tomorrow.
+          </motion.span>{" "}
           <motion.span
             initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            style={{ color: "var(--gold)", display: "inline-block" }}
+            transition={{ duration: 0.5, delay: 0.78, ease: [0.16, 1, 0.3, 1] }}
+            style={{ color: "var(--gold)", display: "inline-block", fontWeight: 700 }}
           >
             Your files wouldn&rsquo;t even notice.
           </motion.span>
         </p>
 
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-          className="muted"
-          style={{ fontSize: 17, lineHeight: 1.65, marginTop: 18, maxWidth: 480 }}
-        >
-          You&rsquo;ve got free storage scattered across every Gmail account you&rsquo;ve ever made. Orbit Drive
-          pools all of them — two, five, however many — into a single, self-organizing drive that finally acts
-          like the space you already own.
-        </motion.p>
-
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.04 }}
+          transition={{ duration: 0.6, delay: 1.02 }}
           className="row"
           style={{ marginTop: 28, flexWrap: "wrap", gap: 14 }}
         >
@@ -193,7 +160,7 @@ export default function Hero() {
               key={stat.label}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 1.18 + i * 0.1 }}
+              transition={{ duration: 0.5, delay: 1.16 + i * 0.1 }}
             >
               <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700, color: "var(--gold)" }}>
                 {stat.value}
