@@ -18,8 +18,9 @@ design: no business logic here, just calls the FastAPI backend (Phases
 cd frontend
 npm install
 cp .env.local.example .env.local
-# NEXT_PUBLIC_API_BASE_URL defaults to http://localhost:8000 — change if
-# your backend runs elsewhere.
+# BACKEND_ORIGIN defaults to http://localhost:8000 — change if your
+# backend runs elsewhere. Server-only: proxied through /api/* by
+# next.config.ts's rewrite, never exposed to the browser.
 npm run dev
 ```
 

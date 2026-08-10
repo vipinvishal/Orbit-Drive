@@ -114,7 +114,7 @@ export default function PrivacyPage() {
       <Section title="Contact">
         <p>
           Questions about this policy, or requests to delete your data, can be sent to{" "}
-          <a href="mailto:support@orbitailabs.in">support@orbitailabs.in</a>.
+          <a href="mailto:support@orbitdrive.space">support@orbitdrive.space</a>.
         </p>
       </Section>
     </div>

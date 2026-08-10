@@ -37,5 +37,5 @@ services:
     buildCommand: "npm install && npm run build"
     startCommand: "npx next start -p $PORT"
     envVars:
-      - key: NEXT_PUBLIC_API_BASE_URL
+      - key: BACKEND_ORIGIN
         sync: false
