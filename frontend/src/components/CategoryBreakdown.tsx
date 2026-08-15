@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { formatBytes } from "@/lib/format";
 import { ImageFileIcon, VideoFileIcon, DocFileIcon, FileIcon } from "@/components/icons";
+import { SkeletonCircle, SkeletonLine } from "@/components/Skeleton";
 import type { StorageBreakdown } from "@/lib/types";
 
 const SIZE = 168;
@@ -22,8 +23,19 @@ export default function CategoryBreakdown({ breakdown }: { breakdown: StorageBre
 
   if (!breakdown) {
     return (
-      <div className="card row" style={{ height: 200, alignItems: "center", justifyContent: "center", color: "var(--text-faint)" }}>
-        <span className="spinner" /> Reading file types…
+      <div className="card row" style={{ gap: 32, flexWrap: "wrap", alignItems: "center" }}>
+        <SkeletonCircle size={SIZE} />
+        <div className="stack" style={{ gap: 16, flex: "1 1 220px", minWidth: 200 }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="stack" style={{ gap: 6 }}>
+              <div className="between">
+                <SkeletonLine width={70 + i * 10} height={12} />
+                <SkeletonLine width={44} height={12} />
+              </div>
+              <SkeletonLine height={5} />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

@@ -7,12 +7,14 @@ import { motion } from "motion/react";
 import { apiFetch } from "@/lib/api";
 import { clearToken } from "@/lib/auth";
 import { formatBytes } from "@/lib/format";
-import { FolderIcon, BarChartIcon, LogOutIcon, CloseIcon } from "@/components/icons";
+import { FolderIcon, BarChartIcon, UserIcon, LogOutIcon, CloseIcon, TrashIcon } from "@/components/icons";
 import { useToast } from "@/components/Toast";
-import type { GoogleAccount, StorageBreakdown, StorageSummary } from "@/lib/types";
+import { SkeletonCircle, SkeletonLine, SkeletonBlock } from "@/components/Skeleton";
+import type { GoogleAccount, Me, StorageBreakdown, StorageSummary } from "@/lib/types";
 
 const QUOTA_WARN_THRESHOLD = 0.9;
 const WARNED_STORAGE_KEY = "orbit_drive_quota_warned";
+const POOLING_CELEBRATED_KEY = "orbit_drive_pooling_celebrated";
 
 function getWarnedAccountIds(): Set<string> {
   try {
@@ -31,6 +33,8 @@ function markAccountWarned(id: string) {
 const NAV_ITEMS = [
   { href: "/dashboard", label: "All Files", icon: FolderIcon },
   { href: "/accounts", label: "Storage", icon: BarChartIcon },
+  { href: "/trash", label: "Trash", icon: TrashIcon },
+  { href: "/profile", label: "Profile", icon: UserIcon },
 ];
 
 const CATEGORIES: { key: keyof StorageBreakdown; label: string; color: string }[] = [
@@ -40,8 +44,10 @@ const CATEGORIES: { key: keyof StorageBreakdown; label: string; color: string }[
   { key: "other_bytes", label: "Other", color: "var(--chart-4)" },
 ];
 
-function initials(email: string): string {
-  return email.slice(0, 2).toUpperCase();
+function initials(label: string): string {
+  const parts = label.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return label.slice(0, 2).toUpperCase();
 }
 
 export default function Sidebar({ onNavigate, onClose }: { onNavigate?: () => void; onClose?: () => void }) {
@@ -52,17 +58,20 @@ export default function Sidebar({ onNavigate, onClose }: { onNavigate?: () => vo
   const [summary, setSummary] = useState<StorageSummary | null>(null);
   const [breakdown, setBreakdown] = useState<StorageBreakdown | null>(null);
   const [accounts, setAccounts] = useState<GoogleAccount[] | null>(null);
+  const [me, setMe] = useState<Me | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const [summaryResult, breakdownResult, accountsResult] = await Promise.all([
+      const [summaryResult, breakdownResult, accountsResult, meResult] = await Promise.all([
         apiFetch<StorageSummary>("/storage/summary"),
         apiFetch<StorageBreakdown>("/storage/breakdown"),
         apiFetch<GoogleAccount[]>("/accounts"),
+        apiFetch<Me>("/me"),
       ]);
       setSummary(summaryResult);
       setBreakdown(breakdownResult);
       setAccounts(accountsResult);
+      setMe(meResult);
 
       // Proactive nudge before an account fills up mid-upload — once per
       // account per browser tab session, not on every sidebar reload.
@@ -75,6 +84,18 @@ export default function Sidebar({ onNavigate, onClose }: { onNavigate?: () => vo
           markAccountWarned(account.id);
         }
       }
+
+      // One account is just a Drive client — the pooling actually starts
+      // at two. Celebrate that moment once, ever (not per session), since
+      // it's the real "aha" for what this product does.
+      if (accountsResult.length >= 2 && localStorage.getItem(POOLING_CELEBRATED_KEY) !== "1") {
+        localStorage.setItem(POOLING_CELEBRATED_KEY, "1");
+        toast.show(
+          `Storage pooled — you're now sharing ${formatBytes(summaryResult.total_quota_bytes)} across ${accountsResult.length} accounts.`,
+          "success",
+          { duration: 6500 },
+        );
+      }
     } catch {
       // sidebar widgets are non-critical — leave them in their loading state
     }
@@ -84,6 +105,8 @@ export default function Sidebar({ onNavigate, onClose }: { onNavigate?: () => vo
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
+    window.addEventListener("orbit-drive:profile-updated", load);
+    return () => window.removeEventListener("orbit-drive:profile-updated", load);
   }, [load]);
 
   function handleLogout() {
@@ -93,7 +116,8 @@ export default function Sidebar({ onNavigate, onClose }: { onNavigate?: () => vo
   }
 
   const primaryEmail = accounts && accounts.length > 0 ? accounts[0].google_email : null;
-  const stillLoading = accounts === null;
+  const identityLabel = me?.display_name || primaryEmail;
+  const stillLoading = accounts === null || me === null;
   const categorizedTotal = breakdown
     ? breakdown.images_bytes + breakdown.videos_bytes + breakdown.documents_bytes + breakdown.other_bytes
     : 0;
@@ -158,30 +182,51 @@ export default function Sidebar({ onNavigate, onClose }: { onNavigate?: () => vo
         )}
       </div>
 
-      <div className="row" style={{ padding: "16px 18px", gap: 10, borderBottom: "1px solid var(--border)" }}>
-        <span
-          className="mono"
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: "50%",
-            background: "var(--gold-wash)",
-            color: "var(--gold)",
-            border: "1px solid var(--gold-ring)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 12,
-            fontWeight: 700,
-            flexShrink: 0,
-          }}
-        >
-          {primaryEmail ? initials(primaryEmail) : stillLoading ? "…" : "?"}
-        </span>
-        <span style={{ fontSize: 12.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-dim)" }}>
-          {primaryEmail ?? (stillLoading ? "Loading…" : "No account connected")}
-        </span>
-      </div>
+      <Link
+        href="/profile"
+        onClick={onNavigate}
+        className="row"
+        style={{ padding: "16px 18px", gap: 10, borderBottom: "1px solid var(--border)", color: "inherit" }}
+      >
+        {stillLoading ? (
+          <SkeletonCircle size={34} />
+        ) : (
+          <span
+            className="mono"
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: "50%",
+              background: "var(--gold-wash)",
+              color: "var(--gold)",
+              border: "1px solid var(--gold-ring)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 12,
+              fontWeight: 700,
+              flexShrink: 0,
+              overflow: "hidden",
+            }}
+          >
+            {me?.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={me.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : identityLabel ? (
+              initials(identityLabel)
+            ) : (
+              "?"
+            )}
+          </span>
+        )}
+        {stillLoading ? (
+          <SkeletonLine width={110} />
+        ) : (
+          <span style={{ fontSize: 12.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-dim)" }}>
+            {identityLabel ?? "No account connected"}
+          </span>
+        )}
+      </Link>
 
       <nav style={{ padding: "14px 10px", display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
         {NAV_ITEMS.map((item) => {
@@ -257,9 +302,17 @@ export default function Sidebar({ onNavigate, onClose }: { onNavigate?: () => vo
             </div>
           </>
         ) : (
-          <div className="muted" style={{ fontSize: 12 }}>
-            Reading storage…
-          </div>
+          <>
+            <SkeletonBlock height={6} radius={4} />
+            <div className="stack" style={{ gap: 8, marginTop: 12 }}>
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="between">
+                  <SkeletonLine width={60 + i * 8} height={10} />
+                  <SkeletonLine width={34} height={10} />
+                </div>
+              ))}
+            </div>
+          </>
         )}
         <button
           onClick={handleLogout}

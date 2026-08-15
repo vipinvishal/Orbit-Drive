@@ -5,6 +5,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { apiFetch, apiDownload, apiUploadWithProgress, ApiError } from "@/lib/api";
 import { useRequireAuth } from "@/lib/auth";
 import StorageSummary from "@/components/StorageSummary";
+import ConnectFirstAccount from "@/components/ConnectFirstAccount";
+import AddAccountNudge from "@/components/AddAccountNudge";
 import SearchBar, { type SearchFilters } from "@/components/SearchBar";
 import UploadDropzone from "@/components/UploadDropzone";
 import FileBrowser from "@/components/FileBrowser";
@@ -16,7 +18,8 @@ import Modal from "@/components/Modal";
 import AppShell from "@/components/AppShell";
 import { OrbitBreakIcon, HomeIcon, ChevronRightIcon, FolderIcon } from "@/components/icons";
 import { useToast } from "@/components/Toast";
-import type { FileListResponse, Folder, GoogleAccount, OrbitFile, StorageSummary as StorageSummaryType, UploadTask } from "@/lib/types";
+import { SkeletonBlock, SkeletonLine } from "@/components/Skeleton";
+import type { FileListResponse, Folder, FolderTrashResponse, GoogleAccount, OrbitFile, StorageSummary as StorageSummaryType, UploadTask } from "@/lib/types";
 
 type Breadcrumb = { id: string | null; name: string };
 type PendingDelete = { files: OrbitFile[]; timeoutId: ReturnType<typeof setTimeout>; fromSearch: boolean };
@@ -38,7 +41,6 @@ export default function DashboardPage() {
   const [previewFile, setPreviewFile] = useState<OrbitFile | null>(null);
 
   const [folderDeleteTarget, setFolderDeleteTarget] = useState<Folder | null>(null);
-  const [folderDeleteMessage, setFolderDeleteMessage] = useState<string | null>(null);
   const [folderDeleteBusy, setFolderDeleteBusy] = useState(false);
 
   const pendingDeleteRef = useRef<PendingDelete | null>(null);
@@ -175,37 +177,29 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleDeleteFolder(folder: Folder) {
-    try {
-      await apiFetch(`/folders/${folder.id}`, { method: "DELETE" });
-      toast.show(`"${folder.name}" deleted.`, "success");
-      await loadFolder(currentFolderId);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 409) {
-        // Not empty — offer to take everything inside with it (real files,
-        // real Drive deletion) instead of making the user empty it by hand.
-        setFolderDeleteTarget(folder);
-        setFolderDeleteMessage(err.message);
-        return;
-      }
-      toast.show(err instanceof ApiError ? err.message : "Failed to delete folder", "error");
-    }
+  // Trashing is reversible (see /trash), so this is one lightweight
+  // confirm — no more "check if it's empty, then escalate to a scarier
+  // warning" dance like the old hard-delete needed.
+  function handleDeleteFolder(folder: Folder) {
+    setFolderDeleteTarget(folder);
   }
 
   function closeFolderDeleteModal() {
     if (folderDeleteBusy) return;
     setFolderDeleteTarget(null);
-    setFolderDeleteMessage(null);
   }
 
-  async function confirmDeleteFolderTree() {
+  async function confirmDeleteFolder() {
     if (!folderDeleteTarget) return;
     setFolderDeleteBusy(true);
     try {
-      await apiFetch(`/folders/${folderDeleteTarget.id}`, { method: "DELETE", query: { force: "true" } });
-      toast.show(`"${folderDeleteTarget.name}" and everything in it deleted.`, "success");
+      const result = await apiFetch<FolderTrashResponse>(`/folders/${folderDeleteTarget.id}`, { method: "DELETE" });
+      const extra = result.files_trashed + result.folders_trashed - 1;
+      toast.show(
+        extra > 0 ? `"${folderDeleteTarget.name}" and ${extra} more item${extra === 1 ? "" : "s"} moved to Trash.` : `"${folderDeleteTarget.name}" moved to Trash.`,
+        "success",
+      );
       setFolderDeleteTarget(null);
-      setFolderDeleteMessage(null);
       await loadFolder(currentFolderId);
       await loadOverview();
     } catch (err) {
@@ -369,15 +363,25 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.06 }}>
-          <StorageSummary summary={summary} accounts={accounts} />
-        </motion.div>
+        {accounts !== null && accounts.length === 0 ? (
+          <ConnectFirstAccount />
+        ) : (
+          <>
+            {accounts !== null && accounts.length === 1 && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.06 }}>
+                <AddAccountNudge />
+              </motion.div>
+            )}
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-          <SearchBar accounts={accounts} onSearch={handleSearch} onClear={() => setSearchResults(null)} />
-        </motion.div>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.08 }}>
+              <StorageSummary summary={summary} accounts={accounts} />
+            </motion.div>
 
-        {!searchResults && <UploadDropzone onFiles={handleFiles} tasks={uploadTasks} />}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
+              <SearchBar accounts={accounts} onSearch={handleSearch} onClear={() => setSearchResults(null)} />
+            </motion.div>
+
+            {!searchResults && <UploadDropzone onFiles={handleFiles} tasks={uploadTasks} />}
 
         {searchResults ? (
           <div className="stack">
@@ -458,10 +462,31 @@ export default function DashboardPage() {
                 </AnimatePresence>
               </div>
             ) : (
-              <div className="muted row">
-                <span className="spinner" /> Loading…
+              <div className="stack" style={{ gap: 20 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 14 }}>
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="card stack" style={{ gap: 14 }}>
+                      <SkeletonBlock width={30} height={30} radius={9} />
+                      <SkeletonLine width="70%" height={13} />
+                    </div>
+                  ))}
+                </div>
+                <div className="card" style={{ padding: 0 }}>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className="row"
+                      style={{ padding: "13px 16px", gap: 12, borderBottom: i < 5 ? "1px solid var(--border)" : "none" }}
+                    >
+                      <SkeletonBlock width={30} height={30} radius={9} />
+                      <SkeletonLine width={140 + i * 26} height={13} />
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
+          </>
+        )}
           </>
         )}
 
@@ -494,11 +519,8 @@ export default function DashboardPage() {
         >
           <div className="stack">
             <p style={{ margin: 0 }}>
-              {folderDeleteMessage} Deleting the folder takes everything inside it too — every file, in every
-              subfolder, all the way down.
-            </p>
-            <p className="muted" style={{ margin: 0, fontSize: 12, color: "var(--critical)" }}>
-              Files are wiped from Google Drive itself, not just Orbit Drive. There&rsquo;s no undo.
+              Move &ldquo;{folderDeleteTarget?.name}&rdquo; to Trash? Everything inside it — every file, in every
+              subfolder — goes too. You can restore it all from Trash within 30 days.
             </p>
             <div className="row" style={{ marginTop: 10, justifyContent: "flex-end" }}>
               <button className="secondary" onClick={closeFolderDeleteModal} disabled={folderDeleteBusy}>
@@ -508,14 +530,14 @@ export default function DashboardPage() {
                 className="danger"
                 style={{ border: "1px solid var(--critical)" }}
                 disabled={folderDeleteBusy}
-                onClick={confirmDeleteFolderTree}
+                onClick={confirmDeleteFolder}
               >
                 {folderDeleteBusy ? (
                   <span className="row" style={{ justifyContent: "center" }}>
-                    <span className="spinner" /> Deleting…
+                    <span className="spinner" /> Moving…
                   </span>
                 ) : (
-                  "Delete folder and everything in it"
+                  "Move to Trash"
                 )}
               </button>
             </div>

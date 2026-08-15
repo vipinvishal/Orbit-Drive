@@ -14,8 +14,8 @@ const STATUS_COLOR: Record<Status, string> = {
 
 const ROADMAP: { title: string; body: string; status: Status }[] = [
   {
-    title: "More clouds, one orbit",
-    body: "Dropbox, OneDrive, and iCloud joining the pool — the same one-drive experience across every storage account you own, not just Google's.",
+    title: "Orbit Drive for Android",
+    body: "A native app so your pooled storage is one tap away — upload from your camera roll, browse, search, all without opening a browser.",
     status: "Coming soon",
   },
   {
@@ -24,19 +24,14 @@ const ROADMAP: { title: string; body: string; status: Status }[] = [
     status: "In development",
   },
   {
-    title: "Orbit Drive for Android",
-    body: "A native app so your pooled storage is one tap away — upload from your camera roll, browse, search, all without opening a browser.",
-    status: "Coming soon",
-  },
-  {
-    title: "Shared & team orbits",
-    body: "Pool storage across a whole team, with permissions — one shared vault built from everyone's individual accounts.",
-    status: "Exploring",
-  },
-  {
     title: "Smart storage insights",
     body: "Surfaces what's actually eating your space and suggests what's safe to clean up, before you're forced to think about it.",
     status: "Exploring",
+  },
+  {
+    title: "More clouds, one orbit",
+    body: "Dropbox, OneDrive, and iCloud joining the pool — the same one-drive experience across every storage account you own, not just Google's.",
+    status: "Coming soon",
   },
 ];
 

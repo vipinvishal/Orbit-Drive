@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import OrbitRing, { ringSubtext } from "@/components/OrbitRing";
+import { SkeletonCircle, SkeletonLine } from "@/components/Skeleton";
 import { formatBytes } from "@/lib/format";
 import type { GoogleAccount, StorageSummary as StorageSummaryType } from "@/lib/types";
 
@@ -29,8 +30,13 @@ export default function StorageSummary({
 
   if (!summary) {
     return (
-      <div className="card row" style={{ height: 96, alignItems: "center", color: "var(--text-faint)" }}>
-        <span className="spinner" /> Reading pooled storage…
+      <div className="card row" style={{ gap: 24, alignItems: "center" }}>
+        <SkeletonCircle size={112} />
+        <div className="stack" style={{ gap: 8, flex: 1 }}>
+          <SkeletonLine width={100} height={11} />
+          <SkeletonLine width={140} height={22} />
+          <SkeletonLine width={180} height={13} />
+        </div>
       </div>
     );
   }

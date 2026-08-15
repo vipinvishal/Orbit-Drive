@@ -5,13 +5,16 @@ import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { API_BASE_URL } from "@/lib/api";
 
-// Authenticated pages (/dashboard, /accounts) use Sidebar.tsx instead of
-// this top nav — there's no page a logged-in user reaches where both would
-// show at once, so this only ever needs the logged-out "Log in" state.
+// Authenticated pages (/dashboard, /accounts, /profile, /trash) use
+// Sidebar.tsx instead of this top nav — there's no page a logged-in user
+// reaches where both would show at once, so this only ever needs the
+// logged-out "Log in" state.
+const AUTHENTICATED_ROUTE_PREFIXES = ["/dashboard", "/accounts", "/profile", "/trash"];
+
 export default function Nav() {
   const pathname = usePathname();
 
-  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/accounts")) return null;
+  if (AUTHENTICATED_ROUTE_PREFIXES.some((prefix) => pathname?.startsWith(prefix))) return null;
 
   function handleLogin() {
     window.location.href = `${API_BASE_URL}/auth/google/login`;

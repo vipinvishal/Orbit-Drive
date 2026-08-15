@@ -11,10 +11,11 @@ import CategoryBreakdown from "@/components/CategoryBreakdown";
 import Modal from "@/components/Modal";
 import AccountFilesPanel from "@/components/AccountFilesPanel";
 import AppShell from "@/components/AppShell";
-import { OrbitBreakIcon, PlusIcon, RefreshIcon, GoogleMark, BarChartIcon } from "@/components/icons";
+import { OrbitBreakIcon, PlusIcon, RefreshIcon, GoogleMark, BarChartIcon, RouteIcon } from "@/components/icons";
 import { useToast } from "@/components/Toast";
 import { handleSpotlight } from "@/lib/spotlight";
-import type { GoogleAccount, OrbitFile, StorageBreakdown, StorageSummary as StorageSummaryType } from "@/lib/types";
+import { SkeletonCircle, SkeletonLine, SkeletonBlock } from "@/components/Skeleton";
+import type { GoogleAccount, OrbitFile, RebalanceResult, StorageBreakdown, StorageSummary as StorageSummaryType } from "@/lib/types";
 
 export default function AccountsPage() {
   return (
@@ -45,6 +46,7 @@ function AccountsPageContent() {
   const [summary, setSummary] = useState<StorageSummaryType | null>(null);
   const [breakdown, setBreakdown] = useState<StorageBreakdown | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [rebalancing, setRebalancing] = useState(false);
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [sortByAvailable, setSortByAvailable] = useState(false);
 
@@ -96,6 +98,19 @@ function AccountsPageContent() {
       toast.show(err instanceof ApiError ? err.message : "Failed to refresh quota", "error");
     } finally {
       setRefreshingId(null);
+    }
+  }
+
+  async function handleRebalance() {
+    setRebalancing(true);
+    try {
+      const result = await apiFetch<RebalanceResult>("/accounts/rebalance", { method: "POST" });
+      toast.show(result.message, result.moved_files > 0 ? "success" : "info");
+      if (result.moved_files > 0) await load();
+    } catch (err) {
+      toast.show(err instanceof ApiError ? err.message : "Failed to rebalance", "error");
+    } finally {
+      setRebalancing(false);
     }
   }
 
@@ -212,6 +227,26 @@ function AccountsPageContent() {
                 {sortByAvailable ? "Sorted: most available" : "Sort by available"}
               </button>
             )}
+            {accounts && accounts.length > 1 && (
+              <button
+                className="secondary row"
+                style={{ gap: 6, fontSize: 13 }}
+                onClick={handleRebalance}
+                disabled={rebalancing}
+                title="Move files from your fullest account to whichever has the most free room"
+              >
+                {rebalancing ? (
+                  <span className="row">
+                    <span className="spinner" /> Rebalancing…
+                  </span>
+                ) : (
+                  <>
+                    <RouteIcon size={14} />
+                    Rebalance now
+                  </>
+                )}
+              </button>
+            )}
             <button onClick={handleConnect} disabled={connecting} className="row" style={{ gap: 6 }}>
               {connecting ? (
                 <span className="row">
@@ -234,7 +269,25 @@ function AccountsPageContent() {
             gap: 16,
           }}
         >
-          {accounts === null && <div className="muted">Loading…</div>}
+          {accounts === null &&
+            [1, 2, 3].map((i) => (
+              <div key={i} className="card">
+                <div className="row" style={{ gap: 10 }}>
+                  <SkeletonCircle size={34} />
+                  <div className="stack" style={{ gap: 6, flex: 1 }}>
+                    <SkeletonLine width="50%" height={14} />
+                    <SkeletonLine width="75%" height={11} />
+                  </div>
+                </div>
+                <div style={{ marginTop: 16 }}>
+                  <SkeletonLine height={6} />
+                </div>
+                <div className="row" style={{ marginTop: 16, gap: 8 }}>
+                  <SkeletonBlock height={34} />
+                  <SkeletonBlock width={80} height={34} />
+                </div>
+              </div>
+            ))}
           {accounts?.length === 0 && (
             <motion.div
               initial={{ opacity: 0 }}

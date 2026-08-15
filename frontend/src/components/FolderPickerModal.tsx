@@ -6,6 +6,7 @@ import { apiFetch, ApiError } from "@/lib/api";
 import Modal from "@/components/Modal";
 import { FolderIcon, HomeIcon, ChevronRightIcon } from "@/components/icons";
 import { useToast } from "@/components/Toast";
+import { SkeletonBlock, SkeletonLine } from "@/components/Skeleton";
 import type { Folder, FileListResponse } from "@/lib/types";
 
 type Crumb = { id: string | null; name: string };
@@ -110,8 +111,13 @@ export default function FolderPickerModal({
 
         <div style={{ maxHeight: 260, overflowY: "auto", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
           {folders === null ? (
-            <div className="muted row" style={{ padding: 16 }}>
-              <span className="spinner" /> Loading…
+            <div className="stack" style={{ padding: 12, gap: 10 }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="row" style={{ gap: 10, padding: "4px 2px" }}>
+                  <SkeletonBlock width={18} height={18} radius={5} />
+                  <SkeletonLine width={100 + i * 30} height={12} />
+                </div>
+              ))}
             </div>
           ) : folders.length === 0 ? (
             <div className="muted" style={{ padding: 16, textAlign: "center", fontSize: 13 }}>
