@@ -19,6 +19,20 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class UserResponse(BaseModel):
+    id: UUID
+    email: str
+    display_name: str | None
+    avatar_url: str | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class UserUpdateRequest(BaseModel):
+    display_name: str | None = None
+
+
 class GoogleAccountResponse(BaseModel):
     id: UUID
     google_email: str
@@ -93,3 +107,42 @@ class StorageBreakdownResponse(BaseModel):
     videos_bytes: int
     documents_bytes: int
     other_bytes: int
+
+
+class FolderTrashResponse(BaseModel):
+    files_trashed: int
+    folders_trashed: int
+
+
+class FolderPurgeResponse(BaseModel):
+    files_purged: int
+    folders_purged: int
+
+
+class TrashedFileResponse(FileResponse):
+    deleted_at: datetime
+    # Where this file will land if restored — None means root. Purely
+    # informational for the Trash view; restore() recomputes the real
+    # target itself (and falls back to root if this path no longer exists).
+    folder_path: str | None = None
+
+
+class TrashedFolderResponse(FolderResponse):
+    deleted_at: datetime
+    folder_path: str | None = None
+
+
+class TrashListResponse(BaseModel):
+    files: list[TrashedFileResponse]
+    folders: list[TrashedFolderResponse]
+
+
+class EmptyTrashResponse(BaseModel):
+    files_purged: int
+    folders_purged: int
+
+
+class RebalanceResponse(BaseModel):
+    moved_files: int
+    moved_bytes: int
+    message: str

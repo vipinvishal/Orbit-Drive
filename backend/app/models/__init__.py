@@ -15,6 +15,14 @@ class User(Base):
     email: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
     # Nullable: Google-authenticated users (mvp.md's Google-first login) never set one.
     password_hash: Mapped[str | None] = mapped_column(Text)
+    display_name: Mapped[str | None] = mapped_column(Text)
+    # Public URL into the Supabase Storage "avatars" bucket (not routed
+    # through the Drive storage pipeline like real files — an avatar isn't
+    # "your data" in the product's sense, it's account metadata, same as
+    # display_name). A public bucket URL also sidesteps an awkward problem:
+    # this app's auth is a Bearer token, not a cookie, so a plain <img src>
+    # can't carry it — a public CDN URL just works directly, no proxying.
+    avatar_url: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     google_accounts: Mapped[list["GoogleAccount"]] = relationship(back_populates="user", cascade="all, delete-orphan")
@@ -48,6 +56,10 @@ class Folder(Base):
     parent_folder_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("folders.id"))
     name: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # NULL = live. Set by a trash (soft-delete), cleared by restore. Every
+    # query that lists/checks folders for normal use must filter this out —
+    # see app/core/deletion.py for the trash/restore/purge lifecycle.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped["User"] = relationship(back_populates="folders")
 
@@ -77,6 +89,9 @@ class File(Base):
     mime_type: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # NULL = live. See Folder.deleted_at — same lifecycle, same rule that
+    # every normal-use query must filter this out.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped["User"] = relationship(back_populates="files")
     # Without this, SQLAlchemy has no way to know files_file_object_id_fkey

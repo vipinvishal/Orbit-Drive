@@ -23,6 +23,7 @@ async def check_dedup(
                 File.file_object_id == FileObject.id,
                 File.folder_id == folder_id,
                 File.filename == filename,
+                File.deleted_at.is_(None),
             ),
         )
         .where(FileObject.owner_user_id == user_id, FileObject.checksum_sha256 == checksum_sha256)

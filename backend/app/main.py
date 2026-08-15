@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api import accounts, auth, files, folders, storage
+from app.api import accounts, auth, files, folders, storage, trash, users
 from app.config import settings
 from app.db.session import get_db
 from app.jobs.worker import run_worker_loop
@@ -50,6 +50,8 @@ app.include_router(accounts.router)
 app.include_router(files.router)
 app.include_router(folders.router)
 app.include_router(storage.router)
+app.include_router(trash.router)
+app.include_router(users.router)
 
 
 @app.get("/health")

@@ -18,5 +18,8 @@ class Settings(BaseSettings):
 
     frontend_url: str = "http://localhost:3000"
 
+    supabase_url: str
+    supabase_service_role_key: str
+
 
 settings = Settings()

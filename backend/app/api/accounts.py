@@ -25,10 +25,12 @@ from app.auth.security import (
 from app.config import settings
 from app.connectors.google_drive import GoogleDriveConnector
 from app.core.audit import log_action
+from app.core.folder_path import build_folder_path_fn
+from app.core.rebalance import run_rebalance
 from app.db.session import get_db
 from app.jobs.quota_refresh import run_quota_refresh
-from app.models import File, FileObject, Folder, GoogleAccount, User
-from app.schemas import AccountFileResponse, GoogleAccountResponse
+from app.models import File, FileObject, GoogleAccount, User
+from app.schemas import AccountFileResponse, GoogleAccountResponse, RebalanceResponse
 
 logger = logging.getLogger("orbit_drive.api.accounts")
 
@@ -129,6 +131,18 @@ async def list_accounts(
     return list(result.scalars().all())
 
 
+@router.post("/rebalance", response_model=RebalanceResponse)
+async def rebalance_accounts(
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> RebalanceResponse:
+    """Manual, on-demand only (v1) — moves files from whichever connected
+    account is fullest to whichever has the most free room, real Drive API
+    calls, capped per run. No background automation yet; see
+    app/core/rebalance.py for the full mechanism."""
+    result = await run_rebalance(db, current_user)
+    return RebalanceResponse(moved_files=result.moved_files, moved_bytes=result.moved_bytes, message=result.message)
+
+
 @router.post("/{account_id}/refresh-quota", response_model=GoogleAccountResponse)
 async def refresh_account_quota(
     account_id: UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
@@ -168,23 +182,7 @@ async def list_account_files(
         .order_by(File.filename)
     )
     files = list(result.scalars().all())
-
-    folders_result = await db.execute(
-        select(Folder.id, Folder.name, Folder.parent_folder_id).where(Folder.user_id == current_user.id)
-    )
-    folder_map = {row.id: (row.name, row.parent_folder_id) for row in folders_result.all()}
-
-    def folder_path(folder_id: UUID | None) -> str | None:
-        parts: list[str] = []
-        current = folder_id
-        while current is not None:
-            entry = folder_map.get(current)
-            if entry is None:
-                break
-            name, parent = entry
-            parts.append(name)
-            current = parent
-        return "/".join(reversed(parts)) if parts else None
+    folder_path = await build_folder_path_fn(db, current_user.id)
 
     return [
         AccountFileResponse.model_validate(f).model_copy(update={"folder_path": folder_path(f.folder_id)})

@@ -37,7 +37,9 @@ async def storage_breakdown(
     # file count) then folded into four buckets in Python — simpler than a
     # SQL CASE expression and plenty fast at personal-drive scale.
     result = await db.execute(
-        select(File.mime_type, func.sum(File.size_bytes)).where(File.user_id == current_user.id).group_by(File.mime_type)
+        select(File.mime_type, func.sum(File.size_bytes))
+        .where(File.user_id == current_user.id, File.deleted_at.is_(None))
+        .group_by(File.mime_type)
     )
     totals = {"image": 0, "video": 0, "document": 0, "other": 0}
     for mime_type, size in result.all():

@@ -10,7 +10,7 @@ logger = logging.getLogger("orbit_drive.api.files")
 
 from app.auth.deps import get_current_user
 from app.core.categories import categorize
-from app.core.deletion import delete_file
+from app.core.deletion import trash_file
 from app.core.pipeline import DuplicateFileError, NoSpaceAvailableError, UploadQueuedForRetryError, upload_file
 from app.core.retrieval import resolve_and_download
 from app.db.session import get_db
@@ -78,11 +78,13 @@ async def list_files(
 ) -> FileListResponse:
     folders_result = await db.execute(
         select(Folder)
-        .where(Folder.user_id == current_user.id, Folder.parent_folder_id == folder_id)
+        .where(Folder.user_id == current_user.id, Folder.parent_folder_id == folder_id, Folder.deleted_at.is_(None))
         .order_by(Folder.name)
     )
     files_result = await db.execute(
-        select(File).where(File.user_id == current_user.id, File.folder_id == folder_id).order_by(File.filename)
+        select(File)
+        .where(File.user_id == current_user.id, File.folder_id == folder_id, File.deleted_at.is_(None))
+        .order_by(File.filename)
     )
     return FileListResponse(
         folders=list(folders_result.scalars().all()),
@@ -107,6 +109,7 @@ async def search_files(
     # the raw SQL fragment.
     stmt = select(File).where(
         File.user_id == current_user.id,
+        File.deleted_at.is_(None),
         text(
             "to_tsvector('english', regexp_replace(filename, '[^a-zA-Z0-9]+', ' ', 'g')) "
             "@@ plainto_tsquery('english', regexp_replace(:q, '[^a-zA-Z0-9]+', ' ', 'g'))"
@@ -164,7 +167,9 @@ async def update_file(
     layer over Drive (drive.file uploads aren't organized into matching
     Drive folders), so this never touches Google Drive — it's a plain
     row update."""
-    result = await db.execute(select(File).where(File.id == file_id, File.user_id == current_user.id))
+    result = await db.execute(
+        select(File).where(File.id == file_id, File.user_id == current_user.id, File.deleted_at.is_(None))
+    )
     file = result.scalar_one_or_none()
     if file is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
@@ -181,7 +186,7 @@ async def update_file(
 
     if "folder_id" in fields_set and target_folder_id is not None:
         folder_result = await db.execute(
-            select(Folder).where(Folder.id == target_folder_id, Folder.user_id == current_user.id)
+            select(Folder).where(Folder.id == target_folder_id, Folder.user_id == current_user.id, Folder.deleted_at.is_(None))
         )
         if folder_result.scalar_one_or_none() is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Destination folder not found")
@@ -193,6 +198,7 @@ async def update_file(
                 File.user_id == current_user.id,
                 File.folder_id == target_folder_id,
                 File.filename == target_filename,
+                File.deleted_at.is_(None),
                 File.id != file.id,
             )
             .limit(1)
@@ -215,6 +221,8 @@ async def update_file(
 async def delete(
     file_id: UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> None:
-    deleted = await delete_file(db, current_user.id, file_id)
-    if deleted is None:
+    """Moves the file to Trash — see app/api/trash.py for restore and
+    permanent deletion. Never touches Google Drive directly."""
+    trashed = await trash_file(db, current_user.id, file_id)
+    if trashed is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")

@@ -1,14 +1,14 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.deps import get_current_user
-from app.core.deletion import collect_folder_subtree, delete_folder_tree
+from app.core.deletion import collect_folder_subtree, trash_folder_tree
 from app.db.session import get_db
-from app.models import File, Folder, User
-from app.schemas import FolderCreateRequest, FolderResponse, FolderUpdateRequest
+from app.models import Folder, User
+from app.schemas import FolderCreateRequest, FolderResponse, FolderTrashResponse, FolderUpdateRequest
 
 router = APIRouter(prefix="/folders", tags=["folders"])
 
@@ -19,7 +19,9 @@ async def create_folder(
 ) -> Folder:
     if body.parent_folder_id is not None:
         result = await db.execute(
-            select(Folder).where(Folder.id == body.parent_folder_id, Folder.user_id == current_user.id)
+            select(Folder).where(
+                Folder.id == body.parent_folder_id, Folder.user_id == current_user.id, Folder.deleted_at.is_(None)
+            )
         )
         if result.scalar_one_or_none() is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Parent folder not found")
@@ -30,6 +32,7 @@ async def create_folder(
             Folder.user_id == current_user.id,
             Folder.parent_folder_id == body.parent_folder_id,
             Folder.name == body.name,
+            Folder.deleted_at.is_(None),
         )
         .limit(1)
     )
@@ -50,7 +53,9 @@ async def create_folder(
 async def get_folder(
     folder_id: UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> Folder:
-    result = await db.execute(select(Folder).where(Folder.id == folder_id, Folder.user_id == current_user.id))
+    result = await db.execute(
+        select(Folder).where(Folder.id == folder_id, Folder.user_id == current_user.id, Folder.deleted_at.is_(None))
+    )
     folder = result.scalar_one_or_none()
     if folder is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found")
@@ -64,7 +69,9 @@ async def update_folder(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Folder:
-    result = await db.execute(select(Folder).where(Folder.id == folder_id, Folder.user_id == current_user.id))
+    result = await db.execute(
+        select(Folder).where(Folder.id == folder_id, Folder.user_id == current_user.id, Folder.deleted_at.is_(None))
+    )
     folder = result.scalar_one_or_none()
     if folder is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found")
@@ -77,7 +84,7 @@ async def update_folder(
         if target_parent_id == folder.id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Can't move a folder into itself")
         parent_result = await db.execute(
-            select(Folder).where(Folder.id == target_parent_id, Folder.user_id == current_user.id)
+            select(Folder).where(Folder.id == target_parent_id, Folder.user_id == current_user.id, Folder.deleted_at.is_(None))
         )
         if parent_result.scalar_one_or_none() is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Destination folder not found")
@@ -97,6 +104,7 @@ async def update_folder(
                 Folder.user_id == current_user.id,
                 Folder.parent_folder_id == target_parent_id,
                 Folder.name == target_name,
+                Folder.deleted_at.is_(None),
                 Folder.id != folder.id,
             )
             .limit(1)
@@ -114,33 +122,24 @@ async def update_folder(
     return folder
 
 
-@router.delete("/{folder_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{folder_id}", response_model=FolderTrashResponse)
 async def delete_folder(
     folder_id: UUID,
-    force: bool = Query(False),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> None:
-    result = await db.execute(select(Folder).where(Folder.id == folder_id, Folder.user_id == current_user.id))
+) -> FolderTrashResponse:
+    """Moves the folder and everything inside it (recursively) to Trash —
+    reversible, so there's no more 409-and-confirm-again dance for non-empty
+    folders like the old hard-delete had. See app/api/trash.py for restore
+    and permanent deletion."""
+    result = await db.execute(
+        select(Folder).where(Folder.id == folder_id, Folder.user_id == current_user.id, Folder.deleted_at.is_(None))
+    )
     folder = result.scalar_one_or_none()
     if folder is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found")
 
-    folder_ids = await collect_folder_subtree(db, current_user.id, folder_id)
-    subfolder_count = len(folder_ids) - 1
-    file_count = (
-        await db.execute(select(func.count()).select_from(File).where(File.folder_id.in_(folder_ids), File.user_id == current_user.id))
-    ).scalar_one()
-
-    if (file_count > 0 or subfolder_count > 0) and not force:
-        parts = []
-        if file_count:
-            parts.append(f"{file_count} file{'s' if file_count != 1 else ''}")
-        if subfolder_count:
-            parts.append(f"{subfolder_count} subfolder{'s' if subfolder_count != 1 else ''}")
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"This folder contains {' and '.join(parts)}.")
-
-    # Recursively deletes every subfolder and every file within any of them —
-    # each file for real, from Google Drive itself (dedup-aware, same as a
-    # single file delete) — not just Orbit Drive's own records.
-    await delete_folder_tree(db, current_user.id, folder_id)
+    trashed = await trash_folder_tree(db, current_user.id, folder_id)
+    assert trashed is not None
+    files_trashed, folders_trashed = trashed
+    return FolderTrashResponse(files_trashed=files_trashed, folders_trashed=folders_trashed)
