@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: "How Orbit Drive collects, uses, and protects your data.",
 };
 
-const LAST_UPDATED = "July 29, 2026";
+const LAST_UPDATED = "August 24, 2026";
 
 export default function PrivacyPage() {
   return (
@@ -52,9 +52,11 @@ export default function PrivacyPage() {
         <ul style={{ margin: "10px 0 0", paddingLeft: 20, lineHeight: 1.8 }}>
           <li>Your email address, used to identify your Orbit Drive account.</li>
           <li>
-            OAuth tokens for each connected Google account, <strong>encrypted at rest</strong> — these let
-            Orbit Drive act on your behalf without storing your Google password, and are never stored or
-            transmitted in plain text.
+            OAuth tokens for each connected Google account — these let Orbit Drive act on your behalf
+            without storing your Google password, and are never stored or transmitted in plain text. On
+            the web, tokens are <strong>encrypted at rest</strong> on our servers. On the Android app,
+            tokens never leave your device at all — they&rsquo;re encrypted locally using Android&rsquo;s own
+            Keystore, and our servers never see them.
           </li>
           <li>
             File metadata — filename, size, file type, a content checksum used to avoid storing duplicate
@@ -95,8 +97,10 @@ export default function PrivacyPage() {
       <Section title="Security">
         <p>
           All traffic between your browser and Orbit Drive is encrypted (HTTPS). Google account sessions
-          use OAuth 2.0 with PKCE, and OAuth tokens are encrypted at rest. Orbit Drive sessions use signed,
-          expiring tokens rather than storing your password.
+          use OAuth 2.0 with PKCE. On the web, OAuth tokens are encrypted at rest on our servers; on the
+          Android app, tokens are encrypted on-device using Android&rsquo;s Keystore and never reach our
+          servers at all. Orbit Drive sessions use signed, expiring tokens rather than storing your
+          password.
         </p>
       </Section>
 
