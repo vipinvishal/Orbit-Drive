@@ -80,7 +80,7 @@ export default function PrivacyPage() {
         </ul>
       </Section>
 
-      <Section title="Deleting your data">
+      <Section title="Deleting your data" id="deleting-your-data">
         <p>
           Disconnecting a Google account removes its stored OAuth tokens immediately. You can choose
           whether disconnecting also deletes the files that account was holding from Google Drive itself,
@@ -125,9 +125,9 @@ export default function PrivacyPage() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
   return (
-    <section>
+    <section id={id}>
       <h2 style={{ fontSize: 17, fontFamily: "var(--font-body)", fontWeight: 700 }}>{title}</h2>
       <div className="muted" style={{ marginTop: 8, fontSize: 14.5, lineHeight: 1.7 }}>
         {children}
